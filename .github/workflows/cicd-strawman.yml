@@ -81,8 +81,8 @@ jobs:
     name: "Deploy to dev"
     runs-on: ubuntu-latest
     environment: dev
-    concurrency:
-      group: dev
+#    concurrency:
+#      group: dev
 
     steps:
       - uses: actions/checkout@v4
