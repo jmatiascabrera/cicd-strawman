@@ -1,0 +1,15 @@
+name: "Install Poetry"
+description: "Install Poetry"
+branding:
+  icon: "code"
+  color: "yellow"
+runs:
+  using: "composite"
+  steps:
+    - name: Configure Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
