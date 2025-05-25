@@ -1,4 +1,4 @@
-name: "CI/CD Strawman"
+name: "Pull Request Pipeline"
 
 on:
   pull_request: {}
