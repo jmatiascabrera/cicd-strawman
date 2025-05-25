@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   push:
 
-
 jobs:
 
   unit_tests:
@@ -17,16 +16,26 @@ jobs:
       - uses: ./.github/actions/poetry
         name: Install Poetry
 
-      - name: Run pytest
-        run: |
-          poetry install
-          poetry run pytest --cov=src --cov-report term --cov-report xml
+      - name: Run unit tests
+        uses: ./.github/actions/run-unit-tests
 
-      - name: Upload code coverage report
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage.xml
+  deploy_dev:
+    name: "Deploy to dev"
+    runs-on: ubuntu-latest
+    environment: dev
+    #    concurrency:
+    #      group: dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: |
+          echo "Deploying to dev..."
+          sleep 5
+        name: Deploy to dev
+        env:
+          ENV: dev
+
 
 
   code_scan_quality:
@@ -62,23 +71,6 @@ jobs:
         run: |
           echo "Your call is very important to us..."
           sleep 10
-
-  deploy_dev:
-    name: "Deploy to dev"
-    runs-on: ubuntu-latest
-    environment: dev
-#    concurrency:
-#      group: dev
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - run: |
-          echo "Deploying to dev..."
-          sleep 5
-        name: Deploy to dev
-        env:
-          ENV: dev
 
 
   integration_tests_dev:

@@ -1,0 +1,54 @@
+name: "CI/CD Strawman"
+
+on:
+  pull_request: {}
+
+jobs:
+
+  unit_tests:
+    name: "Run unit tests"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/poetry
+        name: Install Poetry
+
+      - name: Run unit tests
+        uses: ./.github/actions/run-unit-tests
+
+
+  code_scan_quality:
+    name: "Code quality scan"
+    runs-on: ubuntu-latest
+    needs: [ unit_tests ]
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Download code coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+
+      - name: Run code scan
+        run: |
+          echo "Press F to pay respects..."
+          sleep 18
+
+
+  code_scan_security:
+    name: "Code security scan"
+    runs-on: ubuntu-latest
+    needs: [ unit_tests ]
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Run code scan
+        run: |
+          echo "Your call is very important to us..."
+          sleep 10
