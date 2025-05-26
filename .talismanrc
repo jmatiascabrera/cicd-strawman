@@ -1,5 +1,8 @@
-fileignoreconfig: []
-version: "1.0"
-
+fileignoreconfig:
+- filename: .github/actions/poetry/action.yml
+  checksum: e6298ae14760dd393c7d4ba2a27f25553cadc7be7537508cd162c338f3b2792f
+- filename: .github/actions/run-unit-tests/action.yml
+  checksum: 59bf6f31b205d07f9edd56b2768c97cb384a9f3559231263fd8987a477eca11a
 scopeconfig:
-  - scope: python
+- scope: python
+version: "1.0"

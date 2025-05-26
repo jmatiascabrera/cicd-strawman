@@ -1,11 +1,15 @@
 name: "Main pipeline"
 
+# batch: true
+
 on:
   workflow_dispatch:
   push:
     branches:
       - main
-
+permissions:
+  checks: write
+  pull-requests: write
 jobs:
 
   unit_tests:
@@ -14,121 +18,147 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/poetry
-        name: Install Poetry
+        name: Checkout code
 
       - name: Run unit tests
-        uses: ./.github/actions/run-unit-tests
+        uses: ./.github/actions/run-tests-unit
+
+      - name: Publish test report
+        uses: mikepenz/action-junit-report@v5
+        with:
+          annotate_only: true
+          report_paths: |
+            test-results.xml
+
+
+  code_scan_security:
+    name: "Run code security scan"
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v4
+        name: Checkout code
+
+      - uses: ./.github/actions/run-scan-security
+        name: "Run code security scan"
+        with:
+          wait: 8
+
+  code_lint:
+    name: "Run code linters"
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v4
+        name: Checkout code
+
+      - uses: ./.github/actions/run-linters
+        name: "Run code linters"
+        with:
+          wait: 2
+
+  code_scan_quality:
+    name: "Run code quality scan"
+    runs-on: ubuntu-latest
+    needs: [ unit_tests ]
+    steps:
+
+      - uses: actions/checkout@v4
+        name: Checkout code
+
+      - uses: ./.github/actions/run-scan-quality
+        name: "Run code quality scan"
+        with:
+          wait: 2
+
+
 
   deploy_dev:
-    name: "Deploy to dev"
+    name: "Deploy and test in DEV"
     runs-on: ubuntu-latest
     environment: dev
-    #    concurrency:
-    #      group: dev
+    needs: [ code_scan_quality, code_scan_security, code_lint ]
 
     steps:
       - uses: actions/checkout@v4
+        name: Checkout code
 
-      - uses: ./.github/actions/run-integration-tests
+      - uses: ./.github/actions/deploy
+        name: "Deploy to dev"
+        with:
+          environment: dev
+          wait: 5
+
+      - uses: ./.github/actions/run-tests-integration
+        name: "Run integration tests in dev"
+        with:
+          environment: dev
+          wait: 2
+
+
+  deploy_preq:
+    name: "Deploy and test in PREQ"
+    runs-on: ubuntu-latest
+    environment: preq
+    needs: [ deploy_dev ]
+
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout code
+
+      - uses: ./.github/actions/deploy
+        name: "Deploy to preq"
         with:
           environment: preq
           wait: 5
 
-
-
-  code_scan_quality:
-    name: "Code quality scan"
-    runs-on: ubuntu-latest
-    needs: [ unit_tests ]
-    steps:
-
-      - uses: actions/checkout@v4
-
-      - name: Download code coverage report
-        uses: actions/download-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage.xml
-
-
-      - name: Run code scan
-        run: |
-          echo "Press F to pay respects..."
-          sleep 18
-
-
-  code_scan_security:
-    name: "Code security scan"
-    runs-on: ubuntu-latest
-    needs: [ unit_tests ]
-    steps:
-
-      - uses: actions/checkout@v4
-
-      - name: Run code scan
-        run: |
-          echo "Your call is very important to us..."
-          sleep 10
-
-  integration_tests_dev:
-    name: "Integration tests in dev"
-    runs-on: ubuntu-latest
-    needs: [ deploy_dev ]
-    environment: dev
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/run-integration-tests
+      - uses: ./.github/actions/run-tests-integration
+        name: "Run integration tests in preq"
         with:
           environment: preq
-          wait: 13
+          wait: 2
 
-  deploy_preq:
-    name: "Deploy to preq"
+  deploy_qa:
+    name: "Deploy and test in QA"
     runs-on: ubuntu-latest
-    environment: preq
-    needs: [ integration_tests_dev, code_scan_quality, code_scan_security ]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - run: |
-          echo "Deploying to preq..."
-          sleep 10
-        name: Deploy to preq
-        env:
-          ENV: preq
-
-
-  integration_tests_preq:
-    name: "Integration tests in preq"
-    runs-on: ubuntu-latest
+    environment: qa
     needs: [ deploy_preq ]
 
     steps:
       - uses: actions/checkout@v4
+        name: Checkout code
 
-      - uses: ./.github/actions/run-integration-tests
+      - uses: ./.github/actions/deploy
+        name: "Deploy to qa"
         with:
-          environment: preq
-          wait: 5
+          environment: qa
+          wait: 3
+
+      - uses: ./.github/actions/run-tests-integration
+        name: "Run integration tests in qa"
+        with:
+          environment: qa
+          wait: 1
+
 
   deploy_prod:
-    name: "Deploy to prod"
+    name: "Deploy and test in PROD"
     runs-on: ubuntu-latest
     environment: prod
-    needs: [ integration_tests_preq ]
-#    concurrency:
-#      group: dev
+    needs: [ deploy_qa ]
 
     steps:
       - uses: actions/checkout@v4
+        name: Checkout code
 
-      - run: |
-          echo "Deploying to prod..."
-          sleep 20
-        name: Deploy to prod
-        env:
-          ENV: prod
+      - uses: ./.github/actions/deploy
+        name: "Deploy to prod"
+        with:
+          environment: prod
+          wait: 3
+
+      - uses: ./.github/actions/run-tests-integration
+        name: "Run integration tests in prod"
+        with:
+          environment: prod
+          wait: 2

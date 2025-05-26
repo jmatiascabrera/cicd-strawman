@@ -1,9 +1,26 @@
 name: "Pull Request Pipeline"
 
 on:
-  pull_request: {}
+  pull_request: { }
+permissions:
+  checks: write
+  pull-requests: write
 
 jobs:
+
+  check_branch_naming_convention:
+    runs-on: ubuntu-latest
+    name: "Check branch naming convention"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check branch naming convention
+        run: |
+          echo "Checking branch naming convention..."
+          exit 0
+
 
   unit_tests:
     name: "Run unit tests"
@@ -11,12 +28,24 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/poetry
-        name: Install Poetry
+        name: Checkout code
 
       - name: Run unit tests
-        uses: ./.github/actions/run-unit-tests
+        uses: ./.github/actions/run-tests-unit
+
+      - name: Publish test report
+        uses: mikepenz/action-junit-report@v5
+        with:
+          comment: 'true'
+          report_paths: |
+            test-results.xml
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: code-coverage-results.md
+
 
 
   code_scan_quality:
@@ -26,29 +55,35 @@ jobs:
     steps:
 
       - uses: actions/checkout@v4
+        name: Checkout code
 
-      - name: Download code coverage report
-        uses: actions/download-artifact@v4
+      - uses: ./.github/actions/run-scan-quality
+        name: "Run code quality scan"
         with:
-          name: coverage-report
-          path: coverage.xml
+          wait: 2
 
+  code_lint:
+    name: "Run code linters"
+    runs-on: ubuntu-latest
+    steps:
 
-      - name: Run code scan
-        run: |
-          echo "Press F to pay respects..."
-          sleep 18
+      - uses: actions/checkout@v4
+        name: Checkout code
 
+      - uses: ./.github/actions/run-linters
+        name: "Run code linters"
+        with:
+          wait: 2
 
   code_scan_security:
     name: "Code security scan"
     runs-on: ubuntu-latest
-    needs: [ unit_tests ]
     steps:
 
       - uses: actions/checkout@v4
+        name: Checkout code
 
-      - name: Run code scan
-        run: |
-          echo "Your call is very important to us..."
-          sleep 10
+      - uses: ./.github/actions/run-scan-security
+        name: "Run code security scan"
+        with:
+          wait: 3
