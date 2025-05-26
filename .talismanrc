@@ -1,6 +1,6 @@
 fileignoreconfig:
 - filename: .github/actions/poetry/action.yml
-  checksum: 3825f017f0e96ad0dff513cb2a61437e5d250d7b5c9c419ec2f787baca9f56e3
+  checksum: a272f753fd0130975f30101ad7f312abf79c62b1057a1563a85b5cce43f939dd
 - filename: .github/actions/run-tests-unit/action.yml
   checksum: 2801bb38d58397e125513aed7fef931a788797a7a3086004ae635aed88ebd8a5
 - filename: .github/actions/run-unit-tests/action.yml
