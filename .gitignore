@@ -329,3 +329,6 @@ cython_debug/
 
 
 *.zip
+
+!/cli/src/lib
+!/cli/src/lib/*
