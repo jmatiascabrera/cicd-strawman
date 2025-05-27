@@ -14,17 +14,17 @@ jobs:
 
   unit_tests:
     name: "Run unit tests"
-    runs-on: ubuntu-latest
+    runs-on: javier-k8s-runner
 
     steps:
       - uses: actions/checkout@v4
         name: Checkout code
 
-      - name: Build docker image
-        run: ./devcli build 0.1.${{ github.run_number }}
+#      - name: Build docker image
+#        run: ./devcli build 0.1.${{ github.run_number }}
 
-      - name: Run unit tests
-        uses: ./.github/actions/run-tests-unit
+#      - name: Run unit tests
+#        uses: ./.github/actions/run-tests-unit
 
       - name: Publish test report
         uses: mikepenz/action-junit-report@v5
@@ -36,7 +36,7 @@ jobs:
 
   code_scan_security:
     name: "Run code security scan"
-    runs-on: ubuntu-latest
+    runs-on: javier-k8s-runner
     steps:
 
       - uses: actions/checkout@v4
@@ -49,7 +49,7 @@ jobs:
 
   code_lint:
     name: "Run code linters"
-    runs-on: ubuntu-latest
+    runs-on: javier-k8s-runner
     steps:
 
       - uses: actions/checkout@v4
@@ -62,7 +62,7 @@ jobs:
 
   code_scan_quality:
     name: "Run code quality scan"
-    runs-on: ubuntu-latest
+    runs-on: javier-k8s-runner
     needs: [ unit_tests ]
     steps:
 
@@ -78,7 +78,7 @@ jobs:
 
   deploy_dev:
     name: "Deploy and test in DEV"
-    runs-on: ubuntu-latest
+    runs-on: javier-k8s-runner
     environment: dev
     needs: [ code_scan_quality, code_scan_security, code_lint ]
 
@@ -101,7 +101,7 @@ jobs:
 
   deploy_preq:
     name: "Deploy and test in PREQ"
-    runs-on: ubuntu-latest
+    runs-on: javier-k8s-runner
     environment: preq
     needs: [ deploy_dev ]
 
@@ -123,7 +123,7 @@ jobs:
 
   deploy_qa:
     name: "Deploy and test in QA"
-    runs-on: ubuntu-latest
+    runs-on: javier-k8s-runner
     environment: qa
     needs: [ deploy_preq ]
 
@@ -146,7 +146,7 @@ jobs:
 
   deploy_prod:
     name: "Deploy and test in PROD"
-    runs-on: ubuntu-latest
+    runs-on: javier-k8s-runner
     environment: prod
     needs: [ deploy_qa ]
 

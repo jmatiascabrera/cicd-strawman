@@ -1,9 +1,9 @@
-FROM python:3.12 AS cli
+FROM public.ecr.aws/docker/library/python:3.12 AS cli
 LABEL maintainer="Javier"
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-FROM python:3.12-slim AS deploy
+FROM public.ecr.aws/docker/library/python:3.12-slim AS deploy
 
 COPY --from=cli /root/.local/ /root/.local/
 ENV PATH="${PATH}:/root/.local/bin"
