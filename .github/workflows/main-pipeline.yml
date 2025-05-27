@@ -20,6 +20,9 @@ jobs:
       - uses: actions/checkout@v4
         name: Checkout code
 
+      - name: Build docker image
+        run: ./devcli build 0.1.${{ github.run_number }}
+
       - name: Run unit tests
         uses: ./.github/actions/run-tests-unit
 
