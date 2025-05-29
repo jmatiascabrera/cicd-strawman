@@ -14,7 +14,7 @@ jobs:
 
   unit_tests:
     name: "Run unit tests"
-    runs-on: javier-k8s-runner
+    runs-on: javier-runner
 
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +36,7 @@ jobs:
 
   code_scan_security:
     name: "Run code security scan"
-    runs-on: javier-k8s-runner
+    runs-on: javier-runner
     steps:
 
       - uses: actions/checkout@v4
@@ -49,7 +49,7 @@ jobs:
 
   code_lint:
     name: "Run code linters"
-    runs-on: javier-k8s-runner
+    runs-on: javier-runner
     steps:
 
       - uses: actions/checkout@v4
@@ -62,7 +62,7 @@ jobs:
 
   code_scan_quality:
     name: "Run code quality scan"
-    runs-on: javier-k8s-runner
+    runs-on: javier-runner
     needs: [ unit_tests ]
     steps:
 
@@ -78,7 +78,7 @@ jobs:
 
   deploy_dev:
     name: "Deploy and test in DEV"
-    runs-on: javier-k8s-runner
+    runs-on: javier-runner
     environment: dev
     needs: [ code_scan_quality, code_scan_security, code_lint ]
 
@@ -101,7 +101,7 @@ jobs:
 
   deploy_preq:
     name: "Deploy and test in PREQ"
-    runs-on: javier-k8s-runner
+    runs-on: javier-runner
     environment: preq
     needs: [ deploy_dev ]
 
@@ -123,7 +123,7 @@ jobs:
 
   deploy_qa:
     name: "Deploy and test in QA"
-    runs-on: javier-k8s-runner
+    runs-on: javier-runner
     environment: qa
     needs: [ deploy_preq ]
 
@@ -146,7 +146,7 @@ jobs:
 
   deploy_prod:
     name: "Deploy and test in PROD"
-    runs-on: javier-k8s-runner
+    runs-on: javier-runner
     environment: prod
     needs: [ deploy_qa ]
 
