@@ -7,7 +7,7 @@ on:
 jobs:
 
   check_branch_naming_convention:
-    runs-on: ubuntu-latest
+    runs-on: javier-runner
     name: "Check branch naming convention"
 
     steps:
@@ -22,11 +22,17 @@ jobs:
 
   unit_tests:
     name: "Run unit tests"
-    runs-on: ubuntu-latest
+    runs-on: javier-runner
 
     steps:
       - uses: actions/checkout@v4
         name: Checkout code
+
+      - name: Configure AWS environment
+        uses: ./.github/actions/configure-aws-environment
+
+      - name: Build docker image
+        run: ./devcli build 0.1.${{ github.run_number }}
 
       - name: Run unit tests
         uses: ./.github/actions/run-tests-unit
@@ -48,7 +54,7 @@ jobs:
 
   code_scan_quality:
     name: "Code quality scan"
-    runs-on: ubuntu-latest
+    runs-on: javier-runner
     needs: [ unit_tests ]
     steps:
 
@@ -62,7 +68,7 @@ jobs:
 
   code_lint:
     name: "Run code linters"
-    runs-on: ubuntu-latest
+    runs-on: javier-runner
     steps:
 
       - uses: actions/checkout@v4
@@ -75,7 +81,7 @@ jobs:
 
   code_scan_security:
     name: "Code security scan"
-    runs-on: ubuntu-latest
+    runs-on: javier-runner
     steps:
 
       - uses: actions/checkout@v4

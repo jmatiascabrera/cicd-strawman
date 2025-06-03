@@ -3,18 +3,7 @@ LABEL maintainer="Javier"
 
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-FROM public.ecr.aws/docker/library/python:3.12-slim AS deploy
-
-COPY --from=cli /root/.local/ /root/.local/
-ENV PATH="${PATH}:/root/.local/bin"
-
-WORKDIR /code
-COPY poetry.lock ./
-COPY pyproject.toml ./
-COPY README.md ./
-
-RUN poetry -V
-RUN poetry install -v --no-root
+FROM 386757133934.dkr.ecr.us-east-1.amazonaws.com/javier/poetry AS deploy
 
 COPY src ./src
 
