@@ -16,7 +16,7 @@ fileignoreconfig:
 - filename: cli/src/lib/source_dir.sh
   checksum: 1bc01d5b5ec8ec0ea2fec74c3ad4d3aa3e3240a2d5f86532679442a7ceff5ead
 - filename: devcli
-  checksum: 8fea01173f4cb96a21f85a9980087f7d296f08fcca3cefcf37599438e0dfb2b6
+  checksum: db92d18e21213366ce370eda6c320dd404cd7d004e1d1fb22857b567d8b2e608
 scopeconfig:
 - scope: python
 version: "1.0"
