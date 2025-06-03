@@ -1,7 +1,7 @@
 import gradio as gr
 
 def hello(name):
-    return f"Hello, {name}!"
+    return f"Hola, {name}!"
 
 app = gr.Interface(fn=hello, inputs="text", outputs="text", title="Hello World Gradio App")
 
