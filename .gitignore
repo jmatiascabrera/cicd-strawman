@@ -332,3 +332,5 @@ cython_debug/
 
 !/cli/src/lib
 !/cli/src/lib/*
+.test-results
+.ash-results

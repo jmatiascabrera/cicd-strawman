@@ -36,7 +36,7 @@ jobs:
         with:
           comment: 'true'
           report_paths: |
-            test-results.xml
+            .test-results/test-results.xml
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
