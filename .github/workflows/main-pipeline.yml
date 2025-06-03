@@ -15,6 +15,9 @@ jobs:
       - uses: actions/checkout@v4
         name: Checkout code
 
+      - name: Configure AWS environment
+        uses: ./.github/actions/configure-aws-environment
+
       - name: Build docker image
         run: ./devcli build 0.1.${{ github.run_number }}
 
