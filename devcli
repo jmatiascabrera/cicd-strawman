@@ -27,8 +27,8 @@ devcli_usage() {
   # :command.usage_commands
   printf "%s\n" "$(bold "Commands:")"
   printf "  %s   Display the weather forecast for the current location.\n" "$(green "weather")             "
-  printf "  %s   Build the project\n" "$(green "build")               "
-  printf "  %s   Deploy the project to the specified environment.\n" "$(green "deploy")              "
+  printf "  %s   Build the project.\n" "$(green "build")               "
+  printf "  %s   Run the project locally.\n" "$(green "local-run")           "
   printf "  %s   Run code scanning tools on the project.\n" "$(green "code-scan")           "
   printf "  %s   Run Black code formatter on the project.\n" "$(green "code-scan black")     "
   printf "  %s   Run ASH code scanner on the project.\n" "$(green "code-scan ash")       "
@@ -77,7 +77,7 @@ devcli_weather_usage() {
 
 # :command.usage
 devcli_build_usage() {
-  printf "devcli build - Build the project\n\n"
+  printf "devcli build - Build the project.\n\n"
 
   printf "%s\n" "$(bold "Usage:")"
   printf "  devcli build VERSION\n"
@@ -98,19 +98,19 @@ devcli_build_usage() {
 
     # :argument.usage
     printf "  %s\n" "$(blue "VERSION")"
-    printf "    The build version to use.\n"
+    printf "    The version to build the project with.\n"
     echo
 
   fi
 }
 
 # :command.usage
-devcli_deploy_usage() {
-  printf "devcli deploy - Deploy the project to the specified environment.\n\n"
+devcli_local_run_usage() {
+  printf "devcli local-run - Run the project locally.\n\n"
 
   printf "%s\n" "$(bold "Usage:")"
-  printf "  devcli deploy ENVIRONMENT\n"
-  printf "  devcli deploy --help | -h\n"
+  printf "  devcli local-run\n"
+  printf "  devcli local-run --help | -h\n"
   echo
 
   # :command.long_usage
@@ -120,15 +120,6 @@ devcli_deploy_usage() {
     # :command.usage_fixed_flags
     printf "  %s\n" "$(magenta "--help, -h")"
     printf "    Show this help\n"
-    echo
-
-    # :command.usage_args
-    printf "%s\n" "$(bold "Arguments:")"
-
-    # :argument.usage
-    printf "  %s\n" "$(blue "ENVIRONMENT")"
-    printf "    The environment to deploy to.\n"
-    printf "    %s\n" "Allowed: dev, qa, prod"
     echo
 
   fi
@@ -1157,18 +1148,18 @@ devcli_build_command() {
   set -e
 
   docker buildx build --platform linux/amd64 --push \
-    -t 590184073526.dkr.ecr.us-east-1.amazonaws.com/javier/cicd-strawman-ui:latest \
-    -t 590184073526.dkr.ecr.us-east-1.amazonaws.com/javier/cicd-strawman-ui:"$version" .
+    -t 386757133934.dkr.ecr.us-east-1.amazonaws.com/javier/cicd-strawman-ui:latest \
+    -t 386757133934.dkr.ecr.us-east-1.amazonaws.com/javier/cicd-strawman-ui:"$version" .
 
 }
 
 # :command.function
-devcli_deploy_command() {
+devcli_local_run_command() {
 
-  # src/deploy_command.sh
-  echo "# This file is located at 'src/deploy_command.sh'."
-  echo "# It contains the implementation for the 'ocean deploy' command."
-  echo "# The code you write here will be wrapped by a function named 'ocean_deploy_command()'."
+  # src/local_run_command.sh
+  echo "# This file is located at 'src/local_run_command.sh'."
+  echo "# It contains the implementation for the 'ocean local-run' command."
+  echo "# The code you write here will be wrapped by a function named 'ocean_local_run_command()'."
   echo "# Feel free to edit this file; your changes will persist when regenerating."
   inspect_args
 
@@ -1269,14 +1260,22 @@ devcli_test_unit_command() {
   # src/test_unit_command.sh
   #!/usr/bin/env bash
 
-  echo "# This file is located at 'src/test_unit_command.sh'."
-  echo "# It contains the implementation for the 'devcli test unit' command."
-  echo "# The code you write here will be wrapped by a function named 'devcli_test_unit_command()'."
-  echo "# Feel free to edit this file; your changes will persist when regenerating."
-  inspect_args
+  #inspect_args
 
-  red_ln "Not yet implemented."
-  exit 1
+  poetry run pytest --cov=src \
+    --cov-branch \
+    --cov-report term \
+    --cov-report=term-missing \
+    --cov-report=xml:.test-results/coverage.xml \
+    --junitxml=.test-results/test-results.xml \
+    .
+
+  if [[ $? != 0 ]]; then
+    red_ln "Unit tests failed."
+    exit 1
+  fi
+
+  green_ln "Unit tests passed."
 
 }
 
@@ -1349,10 +1348,10 @@ parse_requirements() {
       shift $#
       ;;
 
-    deploy)
-      action="deploy"
+    local-run)
+      action="local-run"
       shift
-      devcli_deploy_parse_requirements "$@"
+      devcli_local_run_parse_requirements "$@"
       shift $#
       ;;
 
@@ -1517,14 +1516,14 @@ devcli_build_parse_requirements() {
 }
 
 # :command.parse_requirements
-devcli_deploy_parse_requirements() {
+devcli_local_run_parse_requirements() {
   # :command.fixed_flags_filter
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
       --help | -h)
         long_usage=yes
-        devcli_deploy_usage
+        devcli_local_run_usage
         exit
         ;;
 
@@ -1536,7 +1535,7 @@ devcli_deploy_parse_requirements() {
   done
 
   # :command.command_filter
-  action="deploy"
+  action="local-run"
 
   # :command.parse_requirements_while
   while [[ $# -gt 0 ]]; do
@@ -1551,32 +1550,13 @@ devcli_deploy_parse_requirements() {
       *)
         # :command.parse_requirements_case
         # :command.parse_requirements_case_simple
-        # :argument.case
-        if [[ -z ${args['environment']+x} ]]; then
-          args['environment']=$1
-          shift
-        else
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-        fi
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
 
         ;;
 
     esac
   done
-
-  # :command.required_args_filter
-  if [[ -z ${args['environment']+x} ]]; then
-    printf "missing required argument: ENVIRONMENT\nusage: devcli deploy ENVIRONMENT\n" >&2
-
-    exit 1
-  fi
-
-  # :command.whitelist_filter
-  if [[ -n ${args['environment']:-} ]] && [[ ! ${args['environment']:-} =~ ^(dev|qa|prod)$ ]]; then
-    printf "%s\n" "environment must be one of: dev, qa, prod" >&2
-    exit 1
-  fi
 
 }
 
@@ -2135,7 +2115,7 @@ run() {
   case "$action" in
     "weather") devcli_weather_command ;;
     "build") devcli_build_command ;;
-    "deploy") devcli_deploy_command ;;
+    "local-run") devcli_local_run_command ;;
     "code-scan") devcli_code_scan_command ;;
     "code-scan black") devcli_code_scan_black_command ;;
     "code-scan ash") devcli_code_scan_ash_command ;;
